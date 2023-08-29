@@ -36,6 +36,11 @@ type Model struct {
 	isInitialized bool
 }
 
+type Prediciton struct {
+	label string
+	prob  float64
+}
+
 // New should be used to instantiate the model.
 // FastTest needs some initialization for the model binary located on `file`.
 func New(file string) (*Model, error) {
@@ -65,10 +70,12 @@ func (m *Model) GetDimension() (int, error) {
 }
 
 // Predict the `keyword`
-func (m *Model) Predict(keyword string) (string, float64, error) {
+func (m *Model) Predict(keyword string) (*Prediciton, error) {
+
+	emptyPred := &Prediciton{"", 0.0}
 
 	if !m.isInitialized {
-		return "", 0.0, errors.New(error_init_model)
+		return emptyPred, errors.New(error_init_model)
 	}
 
 	resultSize := 32
@@ -83,16 +90,15 @@ func (m *Model) Predict(keyword string) (string, float64, error) {
 		C.int(resultSize),
 	)
 	if status != 0 {
-		return "", 0.0, fmt.Errorf("exception when predicting `%s`", keyword)
+		return emptyPred, fmt.Errorf("exception when predicting `%s`", keyword)
 	}
 
 	// Here's the result from C
-	label := C.GoString(result)
-	prob := float64(cprob)
+	pred := &Prediciton{C.GoString(result), float64(cprob)}
 
 	C.free(unsafe.Pointer(result))
 
-	return label, prob, nil
+	return pred, nil
 }
 
 // GetSentenceVector the `keyword`

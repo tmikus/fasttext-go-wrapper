@@ -10,8 +10,8 @@ func TestPredict(t *testing.T) {
 	if err != nil {
 		t.Errorf("error loading model: %v", err)
 	}
-	label, prob, err := model.Predict("dress")
-	fmt.Println(label, prob)
+	pred, err := model.Predict("dress")
+	fmt.Println(pred.label, pred.prob)
 	if err != nil {
 		t.Errorf("error predicting dimension: %v", err)
 	}
