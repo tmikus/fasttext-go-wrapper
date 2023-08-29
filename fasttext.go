@@ -1,6 +1,7 @@
 package fasttext
 
-// #cgo LDFLAGS: -L${SRCDIR}/fastText/lib -lfasttext-wrapper -lstdc++ -lm -pthread -v
+// one can add -v option down below
+// #cgo LDFLAGS: -L${SRCDIR}/fastText/lib -lfasttext-wrapper -lstdc++ -lm -pthread
 // #include <stdlib.h>
 // int ft_load_model(char *path);
 // int ft_predict(char *query, float *prob, char *buf, int buf_size);
