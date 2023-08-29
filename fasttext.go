@@ -1,6 +1,5 @@
 package fasttext
 
-// one can add -v option down below
 // #cgo LDFLAGS: -L${SRCDIR}/fastText/lib -lfasttext-wrapper -lstdc++ -lm -pthread
 // #include <stdlib.h>
 // int ft_load_model(char *path);
@@ -66,10 +65,10 @@ func (m *Model) GetDimension() (int, error) {
 }
 
 // Predict the `keyword`
-func (m *Model) Predict(keyword string) error {
+func (m *Model) Predict(keyword string) (string, float64, error) {
 
 	if !m.isInitialized {
-		return errors.New(error_init_model)
+		return "", 0.0, errors.New(error_init_model)
 	}
 
 	resultSize := 32
@@ -84,17 +83,16 @@ func (m *Model) Predict(keyword string) error {
 		C.int(resultSize),
 	)
 	if status != 0 {
-		return fmt.Errorf("exception when predicting `%s`", keyword)
+		return "", 0.0, fmt.Errorf("exception when predicting `%s`", keyword)
 	}
 
 	// Here's the result from C
 	label := C.GoString(result)
 	prob := float64(cprob)
-	fmt.Println(label, prob)
 
 	C.free(unsafe.Pointer(result))
 
-	return nil
+	return label, prob, nil
 }
 
 // GetSentenceVector the `keyword`

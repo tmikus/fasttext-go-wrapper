@@ -1,8 +1,21 @@
 package fasttext
 
 import (
+	"fmt"
 	"testing"
 )
+
+func TestPredict(t *testing.T) {
+	model, err := New("test_data/clf.bin")
+	if err != nil {
+		t.Errorf("error loading model: %v", err)
+	}
+	label, prob, err := model.Predict("dress")
+	fmt.Println(label, prob)
+	if err != nil {
+		t.Errorf("error predicting dimension: %v", err)
+	}
+}
 
 func TestGetDimension(t *testing.T) {
 	model, err := New("test_data/model.bin")
@@ -13,7 +26,7 @@ func TestGetDimension(t *testing.T) {
 	if err != nil {
 		t.Errorf("error getting dimension: %v", err)
 	}
-	if d != 50 {
+	if d != 100 {
 		t.Errorf("wrong dimension")
 	}
 
