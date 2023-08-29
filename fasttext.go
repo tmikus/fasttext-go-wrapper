@@ -2,10 +2,11 @@ package fasttext
 
 // #cgo LDFLAGS: -L${SRCDIR}/fastText/lib -lfasttext-wrapper -lstdc++ -lm -pthread
 // #include <stdlib.h>
-// int ft_load_model(char *path);
-// int ft_predict(char *query, float *prob, char *buf, int buf_size);
+// #include "fastText/include/fasttext-wrapper.hpp"
+// int ft_load_model(const char *path);
+// go_fast_text_pair_t* ft_predict(const char *query_in, int k, float threshold, int* result_length);
 // int ft_get_vector_dimension();
-// int ft_get_sentence_vector(char* query_in, float* vector, int vector_size);
+// int ft_get_sentence_vector(const char* query_in, float* vector, int vector_size);
 // int ft_train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr);
 // int ft_save_model(const char* filename);
 import "C"
@@ -19,13 +20,15 @@ import (
 const (
 	_ = iota
 
-	// LabelA is an example prediction value label
+	cArraySize = 1 << 28
+
+	// LabelA is an example prediction value Label
 	LabelA
 
-	// LabelB is an example prediction value label
+	// LabelB is an example prediction value Label
 	LabelB
 
-	// NoLabel is an example prediction value label
+	// NoLabel is an example prediction value Label
 	NoLabel
 
 	error_init_model = "the fasttext model needs to be initialized first. it's should be done inside the `New()` function"
@@ -36,9 +39,9 @@ type Model struct {
 	isInitialized bool
 }
 
-type Prediciton struct {
-	label string
-	prob  float64
+type Prediction struct {
+	Label string
+	Prob  float64
 }
 
 // New should be used to instantiate the model.
@@ -69,36 +72,21 @@ func (m *Model) GetDimension() (int, error) {
 	return res, nil
 }
 
-// Predict the `keyword`
-func (m *Model) Predict(keyword string) (*Prediciton, error) {
+func (m *Model) Predict(text string, k int, threshold float32) []Prediction {
+	textChar := C.CString(text)
+	defer C.free(unsafe.Pointer(textChar))
 
-	emptyPred := &Prediciton{"", 0.0}
-
-	if !m.isInitialized {
-		return emptyPred, errors.New(error_init_model)
-	}
-
-	resultSize := 32
-	result := (*C.char)(C.malloc(C.ulong(resultSize)))
-
-	var cprob C.float
-
-	status := C.ft_predict(
-		C.CString(keyword),
-		&cprob,
-		result,
-		C.int(resultSize),
+	var (
+		cPredictionsLen C.int
+		cPredictionsPtr *C.go_fast_text_pair_t
 	)
-	if status != 0 {
-		return emptyPred, fmt.Errorf("exception when predicting `%s`", keyword)
-	}
 
-	// Here's the result from C
-	pred := &Prediciton{C.GoString(result), float64(cprob)}
+	cPredictionsPtr = C.ft_predict(C.CString(text), C.int(k), C.float(threshold), &cPredictionsLen)
+	predictionsLen := int(cPredictionsLen)
 
-	C.free(unsafe.Pointer(result))
+	cPredictionsArray := (*[cArraySize]C.go_fast_text_pair_t)(unsafe.Pointer(cPredictionsPtr))[:predictionsLen:predictionsLen]
 
-	return pred, nil
+	return cArrayToGoSlice(cPredictionsArray)
 }
 
 // GetSentenceVector the `keyword`
@@ -157,4 +145,18 @@ func (m *Model) Train(model_name, input, output string, epoch, word_ngrams, thre
 	}
 	m.isInitialized = true
 	return nil
+}
+
+func cArrayToGoSlice(cArray []C.go_fast_text_pair_t) []Prediction {
+	predictions := make([]Prediction, 0, len(cArray))
+
+	for _, cStruct := range cArray {
+		prediction := Prediction{
+			Label: C.GoString(cStruct.label),
+			Prob:  float64(cStruct.prob),
+		}
+		predictions = append(predictions, prediction)
+	}
+
+	return predictions
 }

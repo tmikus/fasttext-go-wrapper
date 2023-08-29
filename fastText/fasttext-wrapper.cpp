@@ -7,6 +7,7 @@
 #include <iostream>
 #include <istream>
 #include <sstream>
+#include <vector>
 #include <cstring>
 #include <fastText/fasttext.h>
 #include <fasttext-wrapper.hpp>
@@ -31,14 +32,41 @@ extern "C" {
         return 0;
     }
 
-    int ft_predict(const char *query_in, float *prob, char *out, int out_size) {
+    // int ft_predict(const char *query_in, float *prob, char *out, int out_size) {
 
-        int32_t k = 1;
-        fasttext::real threshold = 0.0;
+    //     int32_t k = 1;
+    //     fasttext::real threshold = 0.0;
 
+    //     std::string query(query_in);
+
+    //     if(!ft_has_newline(query)) {
+    //         query.append("\n");
+    //     }
+
+    //     std::istringstream inquery(query);
+    //     std::istream &in = inquery;
+
+    //     std::vector<std::pair<fasttext::real, std::string>> predictions;
+
+    //     if(!ft_model.predictLine(in, predictions, k, threshold)) {
+    //         *prob = -1;
+    //         strncpy(out, "", out_size);
+    //         return -1;
+    //     }
+
+    //     for(const auto &prediction : predictions) {
+    //         *prob = prediction.first;
+    //         strncpy(out, prediction.second.c_str(), out_size);
+    //     }
+
+    //     return 0;
+    // }
+
+    go_fast_text_pair_t* ft_predict(const char *query_in, int k, float threshold, int* result_length)
+    {
         std::string query(query_in);
 
-        if(!ft_has_newline(query)) {
+        if (!ft_has_newline(query)) {
             query.append("\n");
         }
 
@@ -47,18 +75,21 @@ extern "C" {
 
         std::vector<std::pair<fasttext::real, std::string>> predictions;
 
-        if(!ft_model.predictLine(in, predictions, k, threshold)) {
-            *prob = -1;
-            strncpy(out, "", out_size);
-            return -1;
-        }
+        ft_model.predictLine(in, predictions, k, threshold);
 
-        for(const auto &prediction : predictions) {
-            *prob = prediction.first;
-            strncpy(out, prediction.second.c_str(), out_size);
-        }
+        int result_size = predictions.size();
 
-        return 0;
+        go_fast_text_pair_t* pairsArray = (go_fast_text_pair_t*) malloc(result_size * sizeof(go_fast_text_pair_t));
+
+        for (int i = 0; i < int(predictions.size()); i++){
+            const std::string::size_type label_size = predictions[i].second.size();
+            pairsArray[i].label = new char[label_size + 1];
+            memcpy(pairsArray[i].label, predictions[i].second.c_str(), label_size + 1);
+            pairsArray[i].prob = predictions[i].first;
+        }
+        *result_length = result_size;
+
+        return pairsArray;
     }
 
     int ft_get_vector_dimension()
