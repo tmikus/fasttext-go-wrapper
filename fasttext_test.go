@@ -50,7 +50,7 @@ func TestTrain(t *testing.T) {
 		t.Errorf("error training model: %v", err)
 	}
 
-	err = modelNew.SaveModel(outputFileName)
+	err = modelNew.SaveModel(outputFileName + ".bin")
 	if err != nil {
 		t.Errorf("error writing to a file: %v: %v", outputFileName, err)
 	}
