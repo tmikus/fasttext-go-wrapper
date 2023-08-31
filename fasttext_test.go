@@ -10,11 +10,12 @@ func TestPredict(t *testing.T) {
 	if err != nil {
 		t.Errorf("error loading model: %v", err)
 	}
-	pred := model.Predict("macbook", 5, 0.0)
+	pred := model.Predict("платье", 10, 0.0)
 	for _, pred := range pred {
 		t.Logf(pred.Label)
 		t.Logf(fmt.Sprintf("%f", pred.Prob))
 	}
+
 }
 
 func TestGetDimension(t *testing.T) {
