@@ -50,22 +50,27 @@ func TestTrain(t *testing.T) {
 	var (
 		modelType      = "supervised"
 		inputFileName  = "test_data/train"
-		outputFileName = "test_data/clf"
+		outputFileName = "test_data/context"
 		epoch          = 10
 		wordNGrams     = 2
 		thread         = 10
 		lr             = 0.1
 	)
 
-	modelNew := &Model{isInitialized: false}
-
-	err := modelNew.Train(modelType, inputFileName, outputFileName, epoch, wordNGrams, thread, lr)
+	err := Train(modelType, inputFileName, outputFileName, epoch, wordNGrams, thread, lr)
 	if err != nil {
 		t.Errorf("error training model: %v", err)
 	}
+}
 
-	err = modelNew.SaveModel(outputFileName + ".bin")
+func TestQuantize(t *testing.T) {
+	var (
+		inputFileName  = "test_data/context.bin"
+		outputFileName = "test_data/context"
+	)
+
+	err := Quantize(inputFileName, outputFileName)
 	if err != nil {
-		t.Errorf("error writing to a file: %v: %v", outputFileName, err)
+		t.Errorf("error training model: %v", err)
 	}
 }

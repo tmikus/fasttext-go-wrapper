@@ -7,7 +7,8 @@ package fasttext
 // go_fast_text_pair_t* ft_predict(const char *query_in, int k, float threshold, int* result_length);
 // int ft_get_vector_dimension();
 // int ft_get_sentence_vector(const char* query_in, float* vector, int vector_size);
-// int ft_train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr);
+// int train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr);
+// int quantize(const char* input, const char* output);
 // int ft_save_model(const char* filename);
 import "C"
 
@@ -136,14 +137,24 @@ func (m *Model) SaveModel(filename string) error {
 	return nil
 }
 
-func (m *Model) Train(model_name, input, output string, epoch, word_ngrams, thread int, lr float64) error {
+func Train(model_name, input, output string, epoch, word_ngrams, thread int, lr float64) error {
 
-	status := C.ft_train(C.CString(model_name), C.CString(input), C.CString(output), C.int(epoch), C.int(word_ngrams), C.int(thread), C.float(lr))
+	status := C.train(C.CString(model_name), C.CString(input), C.CString(output), C.int(epoch), C.int(word_ngrams), C.int(thread), C.float(lr))
 
 	if status != 0 {
 		return fmt.Errorf("error while training `%s` fasttext model", model_name)
 	}
-	m.isInitialized = true
+	// m.isInitialized = true
+	return nil
+}
+
+func Quantize(input, output string) error {
+
+	status := C.quantize(C.CString(input), C.CString(output))
+
+	if status != 0 {
+		return fmt.Errorf("error while quantizing `%s` fasttext model", input)
+	}
 	return nil
 }
 

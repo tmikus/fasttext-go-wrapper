@@ -59,7 +59,15 @@ int ft_get_sentence_vector(const char* query_in, float* vector, int vector_size)
  * `lr`: learning rate of the algorithm
  * returns 0 on success
  */
-int ft_train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr);
+int train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr);
+
+/**
+ * quantize function zip fasttext model from
+ * `input`: input filename to
+ * `output`: output filename
+ * returns 0 on success
+ */
+int quantize(const char* input, const char* output);
 
 /**
  * save model to given file
@@ -67,6 +75,7 @@ int ft_train(const char* model_name, const char* input, const char* output, int 
  * returns 0 on success
  **/ 
 int ft_save_model(const char* filename);
+
 
 #ifdef __cplusplus
 }

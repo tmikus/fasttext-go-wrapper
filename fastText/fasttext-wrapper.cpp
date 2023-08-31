@@ -10,6 +10,7 @@
 #include <vector>
 #include <cstring>
 #include <fastText/fasttext.h>
+#include <fastText/autotune.h>
 #include <fasttext-wrapper.hpp>
 
 extern "C" {
@@ -31,36 +32,6 @@ extern "C" {
         }
         return 0;
     }
-
-    // int ft_predict(const char *query_in, float *prob, char *out, int out_size) {
-
-    //     int32_t k = 1;
-    //     fasttext::real threshold = 0.0;
-
-    //     std::string query(query_in);
-
-    //     if(!ft_has_newline(query)) {
-    //         query.append("\n");
-    //     }
-
-    //     std::istringstream inquery(query);
-    //     std::istream &in = inquery;
-
-    //     std::vector<std::pair<fasttext::real, std::string>> predictions;
-
-    //     if(!ft_model.predictLine(in, predictions, k, threshold)) {
-    //         *prob = -1;
-    //         strncpy(out, "", out_size);
-    //         return -1;
-    //     }
-
-    //     for(const auto &prediction : predictions) {
-    //         *prob = prediction.first;
-    //         strncpy(out, prediction.second.c_str(), out_size);
-    //     }
-
-    //     return 0;
-    // }
 
     go_fast_text_pair_t* ft_predict(const char *query_in, int k, float threshold, int* result_length)
     {
@@ -131,29 +102,107 @@ extern "C" {
         return 0;
     }
 
-    int ft_train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr)
-    {
-        fasttext::Args args_object;
-
-        if (strcmp(model_name, "supervised") == 0) { 
-            args_object.model = fasttext::model_name::sup;
-        } else if (strcmp(model_name, "cbow") == 0) {
-            args_object.model = fasttext::model_name::cbow;
-        } else if (strcmp(model_name, "skipgram") == 0) {
-            args_object.model = fasttext::model_name::sg;
-        } else {
-            return -1;
-        }
+    // int ft_train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr)
+    // {
+    //     std::shared_ptr<fasttext::FastText> fasttext = std::make_shared<fasttext::FastText>();
+    //     fasttext::Args a = fasttext::Args();
+        
+    //     if (std::string(model_name) == "supervised") {
+    //         a.model = fasttext::model_name::sup;
+    //     } else if (std::string(model_name) == "cbow") {
+    //         a.model = fasttext::model_name::cbow;
+    //     } else if (std::string(model_name) == "skipgram") {
+    //         a.model = fasttext::model_name::sg;
+    //     } else {
+    //         return -1;
+    //     }
             
-        args_object.input = input;
-        args_object.output = output;
-        args_object.epoch = epoch;
-        args_object.wordNgrams = word_ngrams;
-        args_object.thread = thread;
-        args_object.lr = lr;
+    //     a.input = std::string(input);
+    //     a.output = std::string(output);
+    //     a.epoch = epoch;
+    //     a.wordNgrams = word_ngrams;
+    //     a.thread = thread;
+    //     a.lr = lr;
 
-        ft_model.train(args_object);
-        ft_initialized = true;
+    //     std::ofstream ofs(output);
+    //     if (!ofs.is_open()) {
+    //         throw std::invalid_argument(std::string(output) + " cannot be opened for saving.");
+    //     }
+    //     ofs.close();
+
+    //     fasttext->train(a);
+    //     fasttext->saveModel(output);
+    //     return 0;
+    // }
+
+    int train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr) {
+        const std::vector<std::string> args = {
+            "fasttext",
+            std::string(model_name),
+            "-input",
+            std::string(input),
+            "-output",
+            std::string(output),
+            "-epoch",
+            std::to_string(epoch),
+            "-wordNgrams",
+            std::to_string(word_ngrams),
+            "-thread",
+            std::to_string(thread),
+            "-lr",
+            std::to_string(lr)
+        };
+
+        fasttext::Args a = fasttext::Args();
+        a.parseArgs(args);
+        std::shared_ptr<fasttext::FastText> fasttext = std::make_shared<fasttext::FastText>();
+        std::string outputFileName;
+
+        if (a.hasAutotune() &&
+            a.getAutotuneModelSize() != fasttext::Args::kUnlimitedModelSize) {
+            outputFileName = a.output + ".ftz";
+        } else {
+            outputFileName = a.output + ".bin";
+        }
+        std::ofstream ofs(outputFileName);
+        if (!ofs.is_open()) {
+            throw std::invalid_argument(
+                outputFileName + " cannot be opened for saving.");
+        }
+        ofs.close();
+        if (a.hasAutotune()) {
+            fasttext::Autotune autotune(fasttext);
+            autotune.train(a);
+        } else {
+            fasttext->train(a);
+        }
+        fasttext->saveModel(outputFileName);
+        fasttext->saveVectors(a.output + ".vec");
+        if (a.saveOutput) {
+            fasttext->saveOutput(a.output + ".output");
+        }
+        return 0;
+    }
+
+
+    int quantize(const char* input, const char* output) {
+        const std::vector<std::string> args = {
+            "fasttext",
+            "quantize",
+            "-input",
+            std::string(input),
+            "-output",
+            std::string(output),
+        };
+        fasttext::Args a = fasttext::Args();
+        if (args.size() < 3) {
+           return 1;
+        }
+        a.parseArgs(args);
+        fasttext::FastText fasttext;
+        fasttext.loadModel(a.output + ".bin");
+        fasttext.quantize(a);
+        fasttext.saveModel(a.output + ".ftz");
         return 0;
     }
 }
