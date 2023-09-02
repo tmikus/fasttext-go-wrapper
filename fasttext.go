@@ -138,7 +138,7 @@ func (m *Model) SaveModel(filename string) error {
 	return nil
 }
 
-func (m *Model) Delete(filename string) error {
+func (m *Model) Delete() error {
 	if !m.isInitialized {
 		return errors.New(error_init_model)
 	}
