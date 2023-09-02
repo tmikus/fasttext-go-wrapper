@@ -21,15 +21,15 @@ int ft_load_model(const char* path);
 
 /**
  * Predict a given keyword
- * `query_in`: The actual keyword to predict
- * `prob`: floating value to determine the probability of the result
- * `out`: Predicted value
- * `out_size`: How much characters to be copied into `out`
+
  * returns 0 on success
  */
 // int ft_predict(const char* query_in, float* prob, char* out, int out_size);
 
 /**
+ * `query_in`: The actual keyword to predict
+ * `k`: number of pairs to return
+ * `threshold`: threshold probability of
  * **/
 go_fast_text_pair_t* ft_predict(const char *query_in, int k, float threshold, int* result_length);
 
@@ -75,6 +75,12 @@ int quantize(const char* input, const char* output);
  * returns 0 on success
  **/ 
 int ft_save_model(const char* filename);
+
+/**
+ * delete current model
+ * returns 0 on success
+ **/ 
+int ft_delete();
 
 
 #ifdef __cplusplus

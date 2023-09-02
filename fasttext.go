@@ -10,6 +10,7 @@ package fasttext
 // int train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr);
 // int quantize(const char* input, const char* output);
 // int ft_save_model(const char* filename);
+// int ft_delete();
 import "C"
 
 import (
@@ -42,7 +43,7 @@ type Model struct {
 
 type Prediction struct {
 	Label string
-	Prob  float64
+	Prob  float32
 }
 
 // New should be used to instantiate the model.
@@ -137,6 +138,17 @@ func (m *Model) SaveModel(filename string) error {
 	return nil
 }
 
+func (m *Model) Delete(filename string) error {
+	if !m.isInitialized {
+		return errors.New(error_init_model)
+	}
+	status := C.ft_delete()
+	if status != 0 {
+		return fmt.Errorf("error while deleting fasttext model")
+	}
+	return nil
+}
+
 func Train(model_name, input, output string, epoch, word_ngrams, thread int, lr float64) error {
 
 	status := C.train(C.CString(model_name), C.CString(input), C.CString(output), C.int(epoch), C.int(word_ngrams), C.int(thread), C.float(lr))
@@ -164,7 +176,7 @@ func cArrayToGoSlice(cArray []C.go_fast_text_pair_t) []Prediction {
 	for _, cStruct := range cArray {
 		prediction := Prediction{
 			Label: C.GoString(cStruct.label),
-			Prob:  float64(cStruct.prob),
+			Prob:  float32(cStruct.prob),
 		}
 		predictions = append(predictions, prediction)
 	}

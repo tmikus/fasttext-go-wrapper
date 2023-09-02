@@ -102,40 +102,9 @@ extern "C" {
         return 0;
     }
 
-    // int ft_train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr)
-    // {
-    //     std::shared_ptr<fasttext::FastText> fasttext = std::make_shared<fasttext::FastText>();
-    //     fasttext::Args a = fasttext::Args();
-        
-    //     if (std::string(model_name) == "supervised") {
-    //         a.model = fasttext::model_name::sup;
-    //     } else if (std::string(model_name) == "cbow") {
-    //         a.model = fasttext::model_name::cbow;
-    //     } else if (std::string(model_name) == "skipgram") {
-    //         a.model = fasttext::model_name::sg;
-    //     } else {
-    //         return -1;
-    //     }
-            
-    //     a.input = std::string(input);
-    //     a.output = std::string(output);
-    //     a.epoch = epoch;
-    //     a.wordNgrams = word_ngrams;
-    //     a.thread = thread;
-    //     a.lr = lr;
 
-    //     std::ofstream ofs(output);
-    //     if (!ofs.is_open()) {
-    //         throw std::invalid_argument(std::string(output) + " cannot be opened for saving.");
-    //     }
-    //     ofs.close();
-
-    //     fasttext->train(a);
-    //     fasttext->saveModel(output);
-    //     return 0;
-    // }
-
-    int train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr) {
+    int train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr) 
+    {
         const std::vector<std::string> args = {
             "fasttext",
             std::string(model_name),
@@ -185,7 +154,8 @@ extern "C" {
     }
 
 
-    int quantize(const char* input, const char* output) {
+    int quantize(const char* input, const char* output) 
+    {
         const std::vector<std::string> args = {
             "fasttext",
             "quantize",
@@ -205,4 +175,12 @@ extern "C" {
         fasttext.saveModel(a.output + ".ftz");
         return 0;
     }
+
+    int ft_delete()
+    {
+        delete &ft_model;
+        ft_initialized = false;
+        return 0;
+    }
+
 }
