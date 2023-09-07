@@ -105,8 +105,14 @@ func (m *Model) GetSentenceVector(keyword string) ([]float64, error) {
 	var cfloat C.float
 	result := (*C.float)(C.malloc(C.ulong(vecDim) * C.ulong(unsafe.Sizeof(cfloat))))
 
+	defer C.free(unsafe.Pointer(result))
+
+	keywordC := C.CString(keyword)
+
+	defer C.free(unsafe.Pointer(keywordC))
+
 	status := C.ft_get_sentence_vector(
-		C.CString(keyword),
+		keywordC,
 		result,
 		vecDim,
 	)
@@ -119,8 +125,6 @@ func (m *Model) GetSentenceVector(keyword string) ([]float64, error) {
 	for i := 0; i < int(vecDim); i++ {
 		ret[i] = float64(p2[i])
 	}
-
-	C.free(unsafe.Pointer(result))
 
 	return ret, nil
 }
