@@ -9,8 +9,8 @@
 #include <sstream>
 #include <vector>
 #include <cstring>
-#include <fastText/fasttext.h>
-#include <fastText/autotune.h>
+#include <include/fastText/fasttext.h>
+#include <include/fastText/autotune.h>
 #include <fasttext-wrapper.hpp>
 
 extern "C" {
@@ -103,7 +103,7 @@ extern "C" {
     }
 
 
-    int train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr) 
+    int train(const char* model_name, const char* input, const char* output, int epoch, int word_ngrams, int thread, float lr)
     {
         const std::vector<std::string> args = {
             "fasttext",
@@ -154,7 +154,7 @@ extern "C" {
     }
 
 
-    int quantize(const char* input, const char* output) 
+    int quantize(const char* input, const char* output)
     {
         const std::vector<std::string> args = {
             "fasttext",

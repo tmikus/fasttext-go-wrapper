@@ -6,7 +6,7 @@ import (
 )
 
 func TestPredict(t *testing.T) {
-	model, err := New("test_data/clf.bin")
+	model, err := New("test_data/lid.176.bin")
 	if err != nil {
 		t.Errorf("error loading model: %v", err)
 	}
@@ -19,7 +19,7 @@ func TestPredict(t *testing.T) {
 }
 
 func TestGetDimension(t *testing.T) {
-	model, err := New("test_data/model.bin")
+	model, err := New("test_data/lid.176.bin")
 	if err != nil {
 		t.Errorf("error loading model: %v", err)
 	}
@@ -27,12 +27,12 @@ func TestGetDimension(t *testing.T) {
 	if err != nil {
 		t.Errorf("error getting dimension: %v", err)
 	}
-	if d != 100 {
-		t.Errorf("wrong dimension")
+	if d != 16 {
+		t.Errorf("wrong dimension: %v", d)
 	}
-
 }
 
+// This test only works in https://github.com/fkurushin/fasttext-go-wrapper but the data are not public
 func TestSaveModel(t *testing.T) {
 	var newFileName = "test_data/model_.bin"
 	model, err := New("test_data/model.bin")
@@ -46,6 +46,7 @@ func TestSaveModel(t *testing.T) {
 
 }
 
+// This test only works in https://github.com/fkurushin/fasttext-go-wrapper byt the data are not public
 func TestTrain(t *testing.T) {
 	var (
 		modelType      = "supervised"

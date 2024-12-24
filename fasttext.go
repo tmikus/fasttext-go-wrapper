@@ -1,8 +1,10 @@
 package fasttext
 
-// #cgo LDFLAGS: -L${SRCDIR}/fastText/lib -lfasttext-wrapper -lstdc++ -lm -pthread
+// #cgo CXXFLAGS: -std=c++11
+// #cgo LDFLAGS: -L/opt/homebrew/lib -L/usr/local/lib -lfasttext  -lm -pthread
 // #include <stdlib.h>
-// #include "fastText/include/fasttext-wrapper.hpp"
+// #include "fasttext-wrapper.hpp"
+//
 // int ft_load_model(const char *path);
 // go_fast_text_pair_t* ft_predict(const char *query_in, int k, float threshold, int* result_length);
 // int ft_get_vector_dimension();
@@ -93,7 +95,6 @@ func (m *Model) Predict(text string, k int, threshold float32) []Prediction {
 
 // GetSentenceVector the `keyword`
 func (m *Model) GetSentenceVector(keyword string) ([]float64, error) {
-
 	if !m.isInitialized {
 		return nil, errors.New(error_init_model)
 	}

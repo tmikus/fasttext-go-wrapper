@@ -6,45 +6,14 @@ Here's my attempt at wrapping FastText C++ library with Golang CGO.
 
 ## Requirements
 
-- `git`
-- `make`
-- And [other requirements](https://github.com/facebookresearch/fastText/#requirements) for the FastText library.
+- `fasttext` library installed through `brew` or any other package manager in `/usr/local/lib`
 
 ## Compiling
-
-- Clone the `FastText` git repository & compile it.
-
-    ```Bash
-    $ wget https://github.com/facebookresearch/fastText/archive/v0.9.2.zip
-    $ unzip v0.9.2.zip
-    $ cd fastText-0.9.2
-    $ make
-    ```
-
-- Clone this repository & copy all the `.o` from `fastText-0.9.2` into directory inside `fasttext-go-wrapper/fastText/obj`.
-
-    ```Bash
-    $ git clone https://github.com/fkurushin/fasttext-go-wrapper
-    $ mkdir fasttext-go-wrapper/fastText/obj
-    $ cp fastText-0.9.2/*.o fasttext-go-wrapper/fastText/obj
-    $ cp fastText-0.9.2/src/*.h fasttext-go-wrapper/fastText/include/fastText
-    ```
-
-- Compile the C project
-
-    ```Bash
-    $ cd fasttext-go-wrapper/fastText && make
-    ```
 
 - Build the Go package normally (in the `fasttext-go-wrapper/` dir)
 
     ```Bash
-    $ go build
-    ```
-- If error with linker occures in MacOS
-
-    ```Bash
-    $ sudo cp fasttext-go-wrapper/fastText/lib/libfasttext-wrapper.a /usr/local/lib/
+    go build
     ```
 
 ## Basic usage
@@ -72,20 +41,8 @@ be aware that this method returns a non-normalized vector
 		panic(err)
 	}
     ```
-## Example of Dockerfile 
-    WORKDIR /src
-    RUN wget https://github.com/facebookresearch/fastText/archive/v0.9.2.zip && \
-        unzip v0.9.2.zip
-
-    WORKDIR /src/fastText-0.9.2
-    RUN make
+## Example of Dockerfile
+    RUN apt-get update && apt-get install fasttext -y
 
     WORKDIR /src
-    RUN git clone https://github.com/fkurushin/fasttext-go-wrapper && \
-        rm v0.9.2.zip
-
-    WORKDIR /src/fasttext-go-wrapper/fastText/obj
-    RUN cp ../../../fastText-0.9.2/*.o .
-
-    WORKDIR /src/fasttext-go-wrapper/fastText
-    RUN make
+    RUN go build .

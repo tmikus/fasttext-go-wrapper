@@ -4,5 +4,6 @@
 *.vec
 fasttext-go-wrapper
 
+.idea
 .vscode/
 test_data
