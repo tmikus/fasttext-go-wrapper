@@ -74,15 +74,12 @@ extern "C" {
     int ft_get_sentence_vector(const char* query_in, float* vector_out, int vector_size)
     {
         std::string query(query_in);
-
         if(!ft_has_newline(query)) {
             query.append("\n");
         }
-
         std::istringstream inquery(query);
         std::istream &in = inquery;
         fasttext::Vector svec(ft_model.getDimension());
-
         ft_model.getSentenceVector(in, svec);
         if(svec.size() != vector_size) {
             return -1;
@@ -183,4 +180,14 @@ extern "C" {
         return 0;
     }
 
+    void free_go_fast_text_pair_t(go_fast_text_pair_t* cPredictionsPtr, int cPredictionsLen)
+    {
+        if (cPredictionsPtr == nullptr) {
+            return;
+        }
+        for (int i = 0; i < cPredictionsLen; i++) {
+            delete[] cPredictionsPtr[i].label; 
+        }
+        free((void*)cPredictionsPtr);
+    }
 }

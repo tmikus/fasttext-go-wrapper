@@ -51,24 +51,21 @@ type Prediction struct {
 // New should be used to instantiate the model.
 // FastTest needs some initialization for the model binary located on `file`.
 func New(file string) (*Model, error) {
-
-	status := C.ft_load_model(C.CString(file))
-
+	fileChar := C.CString(file)
+	defer C.free(unsafe.Pointer(fileChar))
+	status := C.ft_load_model(fileChar)
 	if status != 0 {
 		return nil, fmt.Errorf("cannot initialize model on `%s`", file)
 	}
-
 	return &Model{
 		isInitialized: true,
 	}, nil
 }
 
 func (m *Model) GetDimension() (int, error) {
-
 	if !m.isInitialized {
 		return -1, errors.New(error_init_model)
 	}
-
 	res := int(C.ft_get_vector_dimension())
 	if res == -1 {
 		return res, errors.New("model is not initialized")
@@ -87,6 +84,7 @@ func (m *Model) Predict(text string, k int, threshold float32) []Prediction {
 
 	cPredictionsPtr = C.ft_predict(C.CString(text), C.int(k), C.float(threshold), &cPredictionsLen)
 	predictionsLen := int(cPredictionsLen)
+	defer C.free_go_fast_text_pair_t(cPredictionsPtr, cPredictionsLen)
 
 	cPredictionsArray := (*[cArraySize]C.go_fast_text_pair_t)(unsafe.Pointer(cPredictionsPtr))[:predictionsLen:predictionsLen]
 
@@ -105,11 +103,9 @@ func (m *Model) GetSentenceVector(keyword string) ([]float64, error) {
 	}
 	var cfloat C.float
 	result := (*C.float)(C.malloc(C.ulong(vecDim) * C.ulong(unsafe.Sizeof(cfloat))))
-
 	defer C.free(unsafe.Pointer(result))
 
 	keywordC := C.CString(keyword)
-
 	defer C.free(unsafe.Pointer(keywordC))
 
 	status := C.ft_get_sentence_vector(
@@ -134,8 +130,9 @@ func (m *Model) SaveModel(filename string) error {
 	if !m.isInitialized {
 		return errors.New(error_init_model)
 	}
-
-	status := C.ft_save_model(C.CString(filename))
+	filenameC := C.CString(filename)
+	defer C.free(unsafe.Pointer(filenameC))
+	status := C.ft_save_model(filenameC)
 
 	if status != 0 {
 		return fmt.Errorf("error while loading fasttext model to a `%s`", filename)
@@ -155,8 +152,13 @@ func (m *Model) Delete() error {
 }
 
 func Train(model_name, input, output string, epoch, word_ngrams, thread int, lr float64) error {
-
-	status := C.train(C.CString(model_name), C.CString(input), C.CString(output), C.int(epoch), C.int(word_ngrams), C.int(thread), C.float(lr))
+	model_nameC := C.CString(model_name)
+	defer C.free(unsafe.Pointer(model_nameC))
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+	outputC := C.CString(output)
+	defer C.free(unsafe.Pointer(outputC))
+	status := C.train(model_nameC, inputC, outputC, C.int(epoch), C.int(word_ngrams), C.int(thread), C.float(lr))
 
 	if status != 0 {
 		return fmt.Errorf("error while training `%s` fasttext model", model_name)
@@ -166,8 +168,11 @@ func Train(model_name, input, output string, epoch, word_ngrams, thread int, lr 
 }
 
 func Quantize(input, output string) error {
-
-	status := C.quantize(C.CString(input), C.CString(output))
+	inputC := C.CString(input)
+	defer C.free(unsafe.Pointer(inputC))
+	outputC := C.CString(output)
+	defer C.free(unsafe.Pointer(outputC))
+	status := C.quantize(inputC, outputC)
 
 	if status != 0 {
 		return fmt.Errorf("error while quantizing `%s` fasttext model", input)

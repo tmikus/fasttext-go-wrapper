@@ -82,6 +82,11 @@ int ft_save_model(const char* filename);
  **/ 
 int ft_delete();
 
+/**
+ * Free the memory allocated for the `go_fast_text_pair_t` array
+ */
+void free_go_fast_text_pair_t(go_fast_text_pair_t* cPredictionsPtr, int cPredictionsLen);
+
 
 #ifdef __cplusplus
 }
