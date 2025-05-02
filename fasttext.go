@@ -82,7 +82,7 @@ func (m *Model) Predict(text string, k int, threshold float32) []Prediction {
 		cPredictionsPtr *C.go_fast_text_pair_t
 	)
 
-	cPredictionsPtr = C.ft_predict(C.CString(text), C.int(k), C.float(threshold), &cPredictionsLen)
+	cPredictionsPtr = C.ft_predict(textChar, C.int(k), C.float(threshold), &cPredictionsLen)
 	predictionsLen := int(cPredictionsLen)
 	defer C.free_go_fast_text_pair_t(cPredictionsPtr, cPredictionsLen)
 
